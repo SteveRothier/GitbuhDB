@@ -1,14 +1,6 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error(
-      "Variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY requises",
-    );
-  }
-
-  return createSupabaseClient(url, key);
+  return createSupabaseClient(getSupabaseUrl(), getSupabasePublishableKey());
 }

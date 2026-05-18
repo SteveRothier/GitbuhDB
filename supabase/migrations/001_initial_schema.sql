@@ -28,3 +28,17 @@ CREATE TABLE repository_history (
 CREATE INDEX idx_history_repo_date ON repository_history(repository_id, collected_at DESC);
 CREATE INDEX idx_repos_language ON repositories(language);
 CREATE INDEX idx_repos_stars ON repositories(stars DESC);
+
+-- Lecture publique (MVP sans comptes utilisateurs)
+CREATE POLICY "repositories_select_public"
+  ON repositories FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+CREATE POLICY "repository_history_select_public"
+  ON repository_history FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- Pas de INSERT/UPDATE/DELETE pour anon :
+-- le cron et l'API Next.js utilisent SUPABASE_SERVICE_ROLE_KEY (bypass RLS)

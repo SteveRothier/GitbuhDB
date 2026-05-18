@@ -18,7 +18,7 @@ Plateforme inspirée de SteamDB pour suivre les repositories GitHub, historiser 
 cp .env.local.example .env.local
 ```
 
-2. Renseigner `.env.local` (Supabase, `GITHUB_TOKEN`, `CRON_SECRET`).
+2. Renseigner `.env.local` (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GITHUB_TOKEN`, `CRON_SECRET`).
 
 3. Exécuter la migration SQL dans le dashboard Supabase :
    `supabase/migrations/001_initial_schema.sql`
