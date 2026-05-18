@@ -1,42 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { syncRepository } from "@/lib/repositories";
-
-const SEED_REPOS = [
-  ["vercel", "next.js"],
-  ["facebook", "react"],
-  ["vuejs", "vue"],
-  ["sveltejs", "svelte"],
-  ["microsoft", "vscode"],
-  ["tailwindlabs", "tailwindcss"],
-  ["supabase", "supabase"],
-  ["nodejs", "node"],
-] as const;
+import { verifyCronAuth } from "@/lib/cron-auth";
+import { discoverAndIndexPopularRepos } from "@/lib/discover-repos";
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get("authorization");
-
-  if (!secret || authHeader !== `Bearer ${secret}`) {
+  if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const results: { full_name: string; ok: boolean; error?: string }[] = [];
-
-  for (const [owner, name] of SEED_REPOS) {
-    try {
-      await syncRepository(owner, name);
-      results.push({ full_name: `${owner}/${name}`, ok: true });
-    } catch (err) {
-      results.push({
-        full_name: `${owner}/${name}`,
-        ok: false,
-        error: err instanceof Error ? err.message : "erreur",
-      });
-    }
+  try {
+    const discover = await discoverAndIndexPopularRepos();
+    return NextResponse.json({
+      message: "Seed terminé (découverte GitHub Search)",
+      ...discover,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Erreur serveur";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({
-    message: "Seed terminé",
-    results,
-  });
 }

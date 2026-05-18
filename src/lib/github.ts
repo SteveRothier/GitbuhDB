@@ -1,10 +1,12 @@
 import type { GitHubRepoResponse, GitHubSearchItem } from "@/lib/types";
 
 const GITHUB_API = "https://api.github.com";
+const GITHUB_API_VERSION = "2026-03-10";
 
 function getHeaders(): HeadersInit {
   const headers: HeadersInit = {
     Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": GITHUB_API_VERSION,
     "User-Agent": "github-tracker",
   };
 
@@ -73,6 +75,24 @@ export async function searchRepos(
     sort: "stars",
     order: "desc",
     per_page: "10",
+  });
+
+  const data = await githubFetch<{ items: GitHubSearchItem[] }>(
+    `/search/repositories?${params}`,
+  );
+
+  return data.items ?? [];
+}
+
+export async function searchPopularRepos(
+  limit = 10,
+  minStars = 50000,
+): Promise<GitHubSearchItem[]> {
+  const params = new URLSearchParams({
+    q: `stars:>${minStars}`,
+    sort: "stars",
+    order: "desc",
+    per_page: String(Math.min(Math.max(limit, 1), 100)),
   });
 
   const data = await githubFetch<{ items: GitHubSearchItem[] }>(

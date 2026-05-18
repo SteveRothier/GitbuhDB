@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
-import { runCronUpdate } from "@/lib/run-cron-update";
+import { discoverAndIndexPopularRepos } from "@/lib/discover-repos";
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -8,8 +8,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await runCronUpdate();
-    return NextResponse.json(result);
+    const result = await discoverAndIndexPopularRepos();
+    return NextResponse.json({
+      message: "Découverte terminée",
+      ...result,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur serveur";
     return NextResponse.json({ error: message }, { status: 500 });

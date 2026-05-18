@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import type { RepositoryHistory, TrendingPeriod, TrendingRepo } from "@/lib/types";
+import type {
+  Repository,
+  RepositoryHistory,
+  TrendingPeriod,
+  TrendingRepo,
+} from "@/lib/types";
 import { subDays } from "date-fns";
 
 const PERIOD_DAYS: Record<TrendingPeriod, number> = {
@@ -31,13 +36,53 @@ function findHistoryAtOrBefore(
   return best;
 }
 
-export async function getTrendingRepos(
-  period: TrendingPeriod,
-  limit = 20,
-  filters: TrendingFilters = {},
-): Promise<TrendingRepo[]> {
+function computeTrending(
+  repos: Repository[],
+  historyByRepo: Map<number, RepositoryHistory[]>,
+  windowStart: Date,
+  sortByPercent = false,
+): TrendingRepo[] {
+  const trending: TrendingRepo[] = [];
+
+  for (const repo of repos) {
+    const history = historyByRepo.get(repo.id) ?? [];
+    if (history.length < 2) continue;
+
+    const latest = history[history.length - 1];
+    const baseline = findHistoryAtOrBefore(history, windowStart);
+
+    if (!baseline || baseline.id === latest.id) continue;
+
+    const growth = latest.stars - baseline.stars;
+    if (growth <= 0) continue;
+
+    const growthPercent =
+      baseline.stars > 0 ? (growth / baseline.stars) * 100 : 0;
+
+    trending.push({
+      id: repo.id,
+      owner: repo.owner,
+      name: repo.name,
+      full_name: repo.full_name,
+      description: repo.description,
+      language: repo.language,
+      stars: latest.stars,
+      growth,
+      growthPercent,
+    });
+  }
+
+  if (sortByPercent) {
+    trending.sort((a, b) => (b.growthPercent ?? 0) - (a.growthPercent ?? 0));
+  } else {
+    trending.sort((a, b) => b.growth - a.growth);
+  }
+
+  return trending;
+}
+
+async function loadReposWithHistory(filters: TrendingFilters = {}) {
   const supabase = createClient();
-  const windowStart = subDays(new Date(), PERIOD_DAYS[period]);
 
   let query = supabase.from("repositories").select("*");
 
@@ -53,7 +98,7 @@ export async function getTrendingRepos(
 
   const { data: repos } = await query;
 
-  if (!repos?.length) return [];
+  if (!repos?.length) return { repos: [] as Repository[], historyByRepo: new Map() };
 
   const repoIds = repos.map((r) => r.id);
   const { data: allHistory } = await supabase
@@ -69,31 +114,21 @@ export async function getTrendingRepos(
     historyByRepo.set(entry.repository_id, list);
   }
 
-  const trending: TrendingRepo[] = [];
+  return { repos: repos as Repository[], historyByRepo };
+}
 
-  for (const repo of repos) {
-    const history = historyByRepo.get(repo.id) ?? [];
-    if (history.length < 2) continue;
+export async function getTrendingRepos(
+  period: TrendingPeriod,
+  limit = 20,
+  filters: TrendingFilters = {},
+): Promise<TrendingRepo[]> {
+  const windowStart = subDays(new Date(), PERIOD_DAYS[period]);
+  const { repos, historyByRepo } = await loadReposWithHistory(filters);
+  return computeTrending(repos, historyByRepo, windowStart, false).slice(0, limit);
+}
 
-    const latest = history[history.length - 1];
-    const baseline = findHistoryAtOrBefore(history, windowStart);
-
-    if (!baseline || baseline.id === latest.id) continue;
-
-    const growth = latest.stars - baseline.stars;
-    if (growth <= 0) continue;
-
-    trending.push({
-      id: repo.id,
-      owner: repo.owner,
-      name: repo.name,
-      full_name: repo.full_name,
-      language: repo.language,
-      stars: latest.stars,
-      growth,
-    });
-  }
-
-  trending.sort((a, b) => b.growth - a.growth);
-  return trending.slice(0, limit);
+export async function getTopGrowthRepos(limit = 5): Promise<TrendingRepo[]> {
+  const windowStart = subDays(new Date(), PERIOD_DAYS.weekly);
+  const { repos, historyByRepo } = await loadReposWithHistory();
+  return computeTrending(repos, historyByRepo, windowStart, true).slice(0, limit);
 }

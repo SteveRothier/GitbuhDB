@@ -58,7 +58,35 @@ export type TrendingRepo = {
   owner: string;
   name: string;
   full_name: string;
+  description: string | null;
   language: string | null;
   stars: number;
   growth: number;
+  growthPercent?: number;
 };
+
+export type LanguageStat = {
+  language: string;
+  count: number;
+  percent: number;
+};
+
+export type HomeRepoDisplay = {
+  id: number;
+  owner: string;
+  name: string;
+  full_name: string;
+  description: string | null;
+  language: string | null;
+  stars: number;
+  growth?: number;
+  growthPercent?: number;
+};
+
+export const POPULAR_REPO_TAGS = [
+  "vercel/next.js",
+  "facebook/react",
+  "microsoft/vscode",
+  "tailwindlabs/tailwindcss",
+  "rust-lang/rust",
+] as const;
