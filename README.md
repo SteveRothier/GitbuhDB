@@ -121,9 +121,15 @@ Voir [Indexation automatique](#indexation-automatique). Configuration dans [`ver
 ## Déploiement Vercel
 
 1. Pousser le repo sur GitHub et importer dans Vercel
-2. Ajouter toutes les variables d'environnement (mêmes noms que `.env.local`) :
-   - Obligatoires : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GITHUB_TOKEN`, `CRON_SECRET`
+2. **Variables d'environnement sur Vercel** (Settings → Environment Variables) — cochez **Production**, **Preview** et **Development** pour chaque variable :
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `GITHUB_TOKEN`
+   - `CRON_SECRET`
    - Optionnelles : `DISCOVER_MIN_STARS`, `DISCOVER_MAX_NEW_PER_RUN`, `DISCOVER_SEARCH_LIMIT`
+
+   Sans `NEXT_PUBLIC_SUPABASE_*`, le build peut passer mais l'app n'aura pas de données Supabase (fallback GitHub limité sur l'accueil).
 3. Exécuter la migration [`002_home_rpc.sql`](supabase/migrations/002_home_rpc.sql) dans Supabase
 4. Déployer — les crons de [`vercel.json`](vercel.json) s'activent après le deploy (`discover` + `update`)
 5. Vérifier localement avant/après deploy :

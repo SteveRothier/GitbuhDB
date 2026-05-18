@@ -1,3 +1,4 @@
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type {
   Repository,
@@ -82,6 +83,9 @@ function computeTrending(
 }
 
 async function loadReposWithHistory(filters: TrendingFilters = {}) {
+  if (!isSupabaseConfigured()) {
+    return { repos: [] as Repository[], historyByRepo: new Map() };
+  }
   const supabase = createClient();
 
   let query = supabase.from("repositories").select("*");

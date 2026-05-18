@@ -18,6 +18,8 @@ function parsePeriod(value?: string): TrendingPeriod {
   return "daily";
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function TrendingPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const period = parsePeriod(params.period);

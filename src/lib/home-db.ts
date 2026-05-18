@@ -1,3 +1,4 @@
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { HomeRepoDisplay, LanguageStat, Repository } from "@/lib/types";
 
@@ -84,6 +85,7 @@ function mapLanguageRows(rows: LanguageRow[], limit = 6): LanguageStat[] {
 export async function getTrendingDailyFromDb(
   limit = 5,
 ): Promise<HomeRepoDisplay[]> {
+  if (!isSupabaseConfigured()) return [];
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_trending_daily", {
     p_limit: limit,
@@ -100,6 +102,7 @@ export async function getTrendingDailyFromDb(
 export async function getGrowthWeeklyFromDb(
   limit = 5,
 ): Promise<HomeRepoDisplay[]> {
+  if (!isSupabaseConfigured()) return [];
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_growth_weekly", {
     p_limit: limit,
@@ -116,6 +119,7 @@ export async function getGrowthWeeklyFromDb(
 export async function getLatestReposFromDb(
   limit = 5,
 ): Promise<Repository[]> {
+  if (!isSupabaseConfigured()) return [];
   const supabase = createClient();
   const { data, error } = await supabase
     .from("repositories")
@@ -132,6 +136,7 @@ export async function getLatestReposFromDb(
 }
 
 export async function getLanguagesFromDb(limit = 6): Promise<LanguageStat[]> {
+  if (!isSupabaseConfigured()) return [];
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_popular_languages", {
     p_limit: 100,

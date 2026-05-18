@@ -1,150 +1,147 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import {
   BarChart3,
   Bell,
-  Code2,
-  Crown,
+  CirclePlus,
   GitCompare,
-  GitBranch,
+  Heart,
   Home,
-  Search,
-  Star,
+  Moon,
   TrendingUp,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+
+const SIDEBAR_WIDTH = 260;
 
 const explorerLinks = [
-  { href: "/", label: "Accueil", icon: Home, exact: true },
-  { href: "/trending", label: "Trending", icon: TrendingUp },
-  { href: "/trending?period=weekly", label: "Top Croissance", icon: BarChart3 },
-  { href: "/trending", label: "Langages", icon: Code2 },
-  { href: "#", label: "Comparer", icon: GitCompare, disabled: true },
-  { href: "/#search", label: "Recherche", icon: Search },
+  { href: "/trending", label: "Trending", icon: Moon, id: "trending" },
+  {
+    href: "/trending?period=weekly",
+    label: "Top Croissance",
+    icon: TrendingUp,
+    id: "weekly",
+  },
+  { href: "/#languages", label: "Langages", icon: CirclePlus, id: "languages" },
+  { href: "#", label: "Comparer", icon: GitCompare, id: "compare", disabled: true },
 ];
 
 const toolsLinks = [
-  { label: "Mes Dépôts", icon: GitBranch },
-  { label: "Favoris", icon: Star },
+  { label: "Mes Dépôts", icon: User },
+  { label: "Favoris", icon: Heart },
   { label: "Alertes", icon: Bell },
 ];
 
-function NavLink({
-  href,
-  label,
-  icon: Icon,
-  exact,
-  disabled,
-}: {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  exact?: boolean;
-  disabled?: boolean;
-}) {
-  const pathname = usePathname();
-  const base = href.split("?")[0];
-  const active =
-    !disabled &&
-    (exact ? pathname === href : href !== "#" && pathname === base);
+function navItemClass(active: boolean, disabled?: boolean) {
+  return cn(
+    "flex h-10 items-center gap-3 rounded-lg px-3 text-[13px] leading-none transition-colors",
+    disabled
+      ? "cursor-not-allowed text-white/35"
+      : active
+        ? "bg-violet-600/25 font-medium text-white"
+        : "text-white/70 hover:bg-white/5 hover:text-white",
+  );
+}
 
-  if (disabled) {
-    return (
-      <span className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground/50">
-        <Icon className="size-4 shrink-0" />
-        {label}
-      </span>
-    );
-  }
+function SidebarContent() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const period = searchParams.get("period");
+
+  const isHome = pathname === "/";
+  const isTrending = pathname === "/trending";
+  const isTrendingWeekly = isTrending && period === "weekly";
+  const isTrendingDefault = isTrending && period !== "weekly";
 
   return (
-    <Link
-      href={href}
-      className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-        active
-          ? "bg-primary/20 font-medium text-primary"
-          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-      )}
-    >
-      <Icon className="size-4 shrink-0" />
-      {label}
-    </Link>
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-white/[0.06] bg-[#0a0d12]">
+      <div className="flex h-16 shrink-0 items-center gap-3 px-5">
+        <span className="flex size-10 items-center justify-center rounded-full bg-violet-600 text-white">
+          <BarChart3 className="size-5" />
+        </span>
+        <span className="text-lg font-semibold tracking-tight text-white">
+          GitHub Tracker
+        </span>
+      </div>
+
+      <nav className="flex flex-1 flex-col overflow-y-auto px-4 pb-6">
+        <Link
+          href="/"
+          className={cn(
+            "mb-6 flex h-12 items-center gap-3 rounded-xl px-4 text-[15px] font-medium transition-colors",
+            isHome
+              ? "bg-violet-600/30 text-white"
+              : "text-white/70 hover:bg-white/5 hover:text-white",
+          )}
+        >
+          <Home className="size-[18px] shrink-0" />
+          Accueil
+        </Link>
+
+        <p className="mb-2.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          Explorer
+        </p>
+        <div className="space-y-1">
+          {explorerLinks.map((link) => {
+            const { href, label, icon: Icon, id, disabled } = link;
+            let active = false;
+            if (id === "trending") active = isTrendingDefault;
+            if (id === "weekly") active = isTrendingWeekly;
+
+            if (disabled) {
+              return (
+                <span key={label} className={navItemClass(false, true)}>
+                  <Icon className="size-[18px] shrink-0 opacity-50" />
+                  {label}
+                </span>
+              );
+            }
+
+            return (
+              <Link key={label} href={href} className={navItemClass(active)}>
+                <Icon className="size-[18px] shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="my-6 border-t border-white/[0.06]" />
+
+        <p className="mb-2.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          Outils
+        </p>
+        <div className="space-y-1">
+          {toolsLinks.map(({ label, icon: Icon }) => (
+            <span key={label} className={navItemClass(false, true)}>
+              <Icon className="size-[18px] shrink-0 opacity-50" />
+              {label}
+            </span>
+          ))}
+        </div>
+      </nav>
+    </aside>
+  );
+}
+
+function SidebarFallback() {
+  return (
+    <aside className="h-screen w-[260px] shrink-0 border-r border-white/[0.06] bg-[#0a0d12]" />
   );
 }
 
 export function Sidebar({ className }: { className?: string }) {
   return (
-    <aside
-      className={cn(
-        "flex w-[240px] shrink-0 flex-col border-r border-border/60 bg-[#0a0d12]",
-        className,
-      )}
-    >
-      <div className="flex h-14 items-center gap-2 border-b border-border/60 px-4">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
-          <BarChart3 className="size-4" />
-        </span>
-        <span className="font-semibold tracking-tight">GitHub Tracker</span>
-      </div>
-
-      <nav className="flex-1 space-y-6 overflow-y-auto p-4">
-        <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Explorer
-          </p>
-          <div className="space-y-0.5">
-            {explorerLinks.map((link) => (
-              <NavLink key={link.label} {...link} />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Outils
-          </p>
-          <div className="space-y-0.5">
-            {toolsLinks.map(({ label, icon: Icon }) => (
-              <span
-                key={label}
-                className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground/50"
-              >
-                <Icon className="size-4 shrink-0" />
-                {label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </nav>
-
-      <div className="space-y-4 border-t border-border/60 p-4">
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <Crown className="size-4 text-amber-400" />
-            Passez au Premium
-          </div>
-          <p className="mb-3 text-xs text-muted-foreground">
-            Analytics avancées, alertes et export CSV.
-          </p>
-          <button
-            type="button"
-            className={cn(buttonVariants({ size: "sm", variant: "outline" }), "w-full")}
-            disabled
-          >
-            Découvrir
-          </button>
-        </div>
-
-        <p className="text-[10px] text-muted-foreground">
-          © 2024 GitHub Tracker
-          <br />
-          v1.0.0
-        </p>
-      </div>
-    </aside>
+    <div className={className}>
+      <Suspense fallback={<SidebarFallback />}>
+        <SidebarContent />
+      </Suspense>
+    </div>
   );
 }
+
+export { SIDEBAR_WIDTH };

@@ -7,6 +7,8 @@ import { RecentList } from "@/components/home/recent-list";
 import { LanguagesChart } from "@/components/home/languages-chart";
 import { getHomePageData } from "@/lib/home-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { dailyTrending, weeklyGrowth, recent, languages, usingGitHubFallback } =
     await getHomePageData();
@@ -53,7 +55,12 @@ export default async function Home() {
           <RecentList repos={recent} />
         </DashboardCard>
 
-        <DashboardCard icon={Code2} title="Langages populaires" href="/trending">
+        <DashboardCard
+          id="languages"
+          icon={Code2}
+          title="Langages populaires"
+          href="/trending"
+        >
           <LanguagesChart languages={languages} />
         </DashboardCard>
       </div>
