@@ -29,6 +29,9 @@ CREATE INDEX idx_history_repo_date ON repository_history(repository_id, collecte
 CREATE INDEX idx_repos_language ON repositories(language);
 CREATE INDEX idx_repos_stars ON repositories(stars DESC);
 
+ALTER TABLE repositories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE repository_history ENABLE ROW LEVEL SECURITY;
+
 -- Lecture publique (MVP sans comptes utilisateurs)
 CREATE POLICY "repositories_select_public"
   ON repositories FOR SELECT

@@ -1,16 +1,19 @@
 import Link from "next/link";
-import { Search, TrendingUp, BarChart3 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { TrendingUp } from "lucide-react";
+import { RepoSearch } from "@/components/repo-search";
+import { RepoCard } from "@/components/repo-card";
+import { TrendingTable } from "@/components/trending-table";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { getRecentRepositories } from "@/lib/repositories";
+import { getTrendingRepos } from "@/lib/trending";
 
-export default function Home() {
+export default async function Home() {
+  const [trending, recent] = await Promise.all([
+    getTrendingRepos("daily", 5),
+    getRecentRepositories(6),
+  ]);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
       <section className="mb-16 text-center">
@@ -22,66 +25,38 @@ export default function Home() {
         </h1>
         <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
           Historisez les stars, visualisez la croissance et découvrez les projets
-          tendance — inspiré de SteamDB pour l&apos;écosystème open source.
+          tendance.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <RepoSearch className="mx-auto" />
+      </section>
+
+      <section className="mb-16">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Trending aujourd&apos;hui</h2>
           <Link
             href="/trending"
-            className={cn(buttonVariants({ size: "lg" }), "gap-2")}
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
           >
             <TrendingUp className="size-4" />
-            Voir le trending
+            Voir tout
           </Link>
-          <Button size="lg" variant="outline" disabled>
-            <Search className="size-4" />
-            Recherche — bientôt
-          </Button>
         </div>
+        <TrendingTable
+          repos={trending}
+          emptyMessage="Aucun trending pour le moment. Recherchez des repositories pour commencer à collecter l'historique."
+        />
       </section>
 
-      <section className="grid gap-6 sm:grid-cols-3">
-        {[
-          {
-            icon: Search,
-            title: "Rechercher",
-            description:
-              "Trouvez un repository par nom (ex. vercel/next.js) et enregistrez ses statistiques.",
-          },
-          {
-            icon: BarChart3,
-            title: "Graphiques",
-            description:
-              "Visualisez l'évolution des stars et forks dans le temps.",
-          },
-          {
-            icon: TrendingUp,
-            title: "Trending",
-            description:
-              "Classements quotidiens, hebdomadaires et mensuels des repos en croissance.",
-          },
-        ].map(({ icon: Icon, title, description }) => (
-          <Card key={title} className="border-border/60 bg-card/80">
-            <CardHeader>
-              <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                <Icon className="size-5" />
-              </div>
-              <CardTitle>{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </CardHeader>
-            <CardContent />
-          </Card>
-        ))}
-      </section>
-
-      <p className="mt-12 text-center text-sm text-muted-foreground">
-        Prochaine étape : connecter Supabase et l&apos;API GitHub. Copiez{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-          .env.local.example
-        </code>{" "}
-        vers{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 text-xs">.env.local</code>
-        .
-      </p>
+      {recent.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-xl font-semibold">Derniers ajouts</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {recent.map((repo) => (
+              <RepoCard key={repo.id} repo={repo} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
