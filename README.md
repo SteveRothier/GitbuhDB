@@ -45,29 +45,40 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 
 Un **cron quotidien** découvre les repos populaires via GitHub Search (`stars:>10000` par défaut) et les indexe s'ils ne sont pas déjà en base. Le **cron horaire** actualise ensuite tous les repos indexés.
 
-| Cron | Horaire | Route |
-|------|---------|-------|
-| Découverte | `0 0 * * *` (minuit UTC) | `/api/cron/discover` |
-| Mise à jour | `0 * * * *` (chaque heure) | `/api/cron/update` |
+| Plan Vercel | Configuration | Comportement |
+|-------------|---------------|--------------|
+| **Hobby** (défaut) | 1 cron : `0 0 * * *` → `/api/cron/sync` | Chaque jour : discover + update de tous les repos |
+| **Pro** | 2 crons (voir ci-dessous) | Discover quotidien + update horaire |
 
 Test en local :
 
 ```bash
-# Découverte + indexation (équivalent cron quotidien)
+# Équivalent cron Hobby / quotidien (discover + update)
+curl -H "Authorization: Bearer VOTRE_CRON_SECRET" http://localhost:3000/api/cron/sync
+
+# Découverte seule
 curl -H "Authorization: Bearer VOTRE_CRON_SECRET" http://localhost:3000/api/cron/discover
 
-# Mise à jour horaire
+# Mise à jour seule
 curl -H "Authorization: Bearer VOTRE_CRON_SECRET" http://localhost:3000/api/cron/update
+
+# Update sans discover
+curl -H "Authorization: Bearer VOTRE_CRON_SECRET" "http://localhost:3000/api/cron/sync?discover=0"
 ```
 
 Variables optionnelles : `DISCOVER_MIN_STARS`, `DISCOVER_MAX_NEW_PER_RUN`, `DISCOVER_SEARCH_LIMIT` (voir `.env.local.example`).
 
-### Vercel Hobby (1 seul cron)
+### Vercel Pro (crons horaires)
 
-Si Vercel n'autorise qu'un cron, remplacez les deux entrées de `vercel.json` par une seule vers `/api/cron/sync` (`0 * * * *`) : à minuit UTC elle lance la découverte, puis met à jour tous les repos à chaque passage.
+Sur un plan Pro, vous pouvez remplacer l'entrée unique de [`vercel.json`](vercel.json) par :
 
-```bash
-curl -H "Authorization: Bearer VOTRE_CRON_SECRET" "http://localhost:3000/api/cron/sync?discover=1"
+```json
+{
+  "crons": [
+    { "path": "/api/cron/discover", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/update", "schedule": "0 * * * *" }
+  ]
+}
 ```
 
 ## Peupler les données (seed)

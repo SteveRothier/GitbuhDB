@@ -129,6 +129,14 @@ async function main() {
   for (const c of vercelJson.crons ?? []) {
     console.log(`  ${c.schedule} → ${c.path}`);
   }
+  const hourly = (vercelJson.crons ?? []).some(
+    (c) => c.schedule === "0 * * * *",
+  );
+  if (hourly) {
+    console.log(
+      "ATTENTION: un cron horaire (0 * * * *) nécessite Vercel Pro. Hobby = 1×/jour via /api/cron/sync",
+    );
+  }
 }
 
 main().catch((e) => {

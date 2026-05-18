@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/discover",
+      "path": "/api/cron/sync",
       "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/update",
-      "schedule": "0 * * * *"
     }
   ]
 }

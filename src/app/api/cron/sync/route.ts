@@ -4,24 +4,22 @@ import { discoverAndIndexPopularRepos } from "@/lib/discover-repos";
 import { runCronUpdate } from "@/lib/run-cron-update";
 
 /**
- * Route combinée pour Vercel Hobby (1 seul cron) :
- * - discover à minuit UTC ou si ?discover=1
- * - puis mise à jour de tous les repos indexés
+ * Route combinée pour Vercel Hobby (1 cron/jour max) :
+ * discover + update à chaque passage.
+ * ?discover=0 pour ne lancer que la mise à jour (tests manuels).
  */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const forceDiscover =
-    request.nextUrl.searchParams.get("discover") === "1";
-  const hourUtc = new Date().getUTCHours();
-  const shouldDiscover = forceDiscover || hourUtc === 0;
+  const skipDiscover =
+    request.nextUrl.searchParams.get("discover") === "0";
 
   try {
     let discoverResult = null;
 
-    if (shouldDiscover) {
+    if (!skipDiscover) {
       discoverResult = await discoverAndIndexPopularRepos();
     }
 
@@ -30,7 +28,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       discover: discoverResult,
       update: updateResult,
-      discoverRan: shouldDiscover,
+      discoverRan: !skipDiscover,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur serveur";
