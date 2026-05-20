@@ -36,12 +36,14 @@ export function HeroSearch() {
           <div className="flex">
             <div className="relative flex min-w-0 flex-1">
               <input
-                type="search"
+                type="text"
+                role="searchbox"
+                autoComplete="off"
                 placeholder="Rechercher un dépôt GitHub..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => shouldSearch && setOpen(true)}
-                className="h-14 w-full bg-transparent py-0 pl-5 pr-10 text-base outline-none placeholder:text-muted-foreground"
+                className="h-14 w-full bg-transparent py-0 pl-5 pr-10 text-base outline-none placeholder:text-muted-foreground [&::-ms-clear]:hidden"
               />
               {query.length > 0 && (
                 <button

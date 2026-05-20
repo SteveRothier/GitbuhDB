@@ -23,7 +23,9 @@ export function RepoSearch({ className }: { className?: string }) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            type="search"
+            type="text"
+            role="searchbox"
+            autoComplete="off"
             placeholder="Rechercher un repo (ex. vercel/next.js)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
