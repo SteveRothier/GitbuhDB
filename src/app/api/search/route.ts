@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { GitHubApiError, searchRepos } from "@/lib/github";
+
+async function cachedSearch(q: string) {
+  return searchRepos(q);
+}
+
+function getCachedSearch(q: string) {
+  return unstable_cache(
+    () => cachedSearch(q),
+    ["github-search", q],
+    { revalidate: 1800 },
+  )();
+}
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim();
@@ -9,7 +22,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const items = await searchRepos(q);
+    const items = await getCachedSearch(q);
     return NextResponse.json({ items });
   } catch (err) {
     if (err instanceof GitHubApiError) {

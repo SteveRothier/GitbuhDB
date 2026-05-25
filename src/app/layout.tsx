@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | GitHub Tracker",
   },
   description:
-    "Suivez les repositories GitHub, historisez les statistiques et découvrez les projets en croissance.",
+    "Suivez les dépôts GitHub : stats live, activité commits, issues et PR via l’API GitHub.",
 };
 
 export default function RootLayout({

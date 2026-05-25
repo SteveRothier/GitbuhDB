@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useRepoSearch } from "@/hooks/use-repo-search";
-import { POPULAR_REPO_TAGS } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function HeroSearch() {
@@ -28,8 +26,8 @@ export function HeroSearch() {
     <div className="relative mx-auto w-full max-w-3xl">
       <div
         className={cn(
-          "overflow-hidden rounded-xl border border-border/60 bg-[#111827] shadow-lg shadow-primary/5",
-          showDropdown && "shadow-xl",
+          "overflow-hidden rounded-xl border border-white/[0.08] bg-[#161b22] shadow-lg shadow-black/40",
+          showDropdown && "shadow-xl shadow-violet-950/30",
         )}
       >
         <form onSubmit={handleSubmit}>
@@ -43,7 +41,7 @@ export function HeroSearch() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => shouldSearch && setOpen(true)}
-                className="h-14 w-full bg-transparent py-0 pl-5 pr-10 text-base outline-none placeholder:text-muted-foreground [&::-ms-clear]:hidden"
+                className="h-11 w-full bg-transparent py-0 pl-4 pr-10 text-sm outline-none placeholder:text-muted-foreground sm:text-base [&::-ms-clear]:hidden"
               />
               {query.length > 0 && (
                 <button
@@ -61,7 +59,7 @@ export function HeroSearch() {
             </div>
             <button
               type="submit"
-              className="flex h-14 shrink-0 items-center gap-2 border-l border-white/[0.06] bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="flex h-11 shrink-0 items-center gap-2 border-l border-white/[0.06] bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <Search className="size-4" />
               Rechercher
@@ -107,22 +105,6 @@ export function HeroSearch() {
               ))}
           </ul>
         )}
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
-        <span className="text-muted-foreground">Popular searches :</span>
-        {POPULAR_REPO_TAGS.map((tag) => {
-          const [owner, name] = tag.split("/");
-          return (
-            <Link
-              key={tag}
-              href={`/github/${owner}/${name}`}
-              className="rounded-md border border-border/50 bg-[#111827]/80 px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-            >
-              {tag}
-            </Link>
-          );
-        })}
       </div>
     </div>
   );
